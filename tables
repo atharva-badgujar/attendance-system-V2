@@ -1,0 +1,51 @@
+-- Classes table
+CREATE TABLE Classes (
+    class_id SERIAL PRIMARY KEY,
+    class_name VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Subjects table
+CREATE TABLE Subjects (
+    subject_id SERIAL PRIMARY KEY,
+    subject_name VARCHAR(100) UNIQUE NOT NULL,
+    subject_code VARCHAR(20) UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Students table
+CREATE TABLE Students (
+    prn_no VARCHAR(20) PRIMARY KEY,
+    class_id INTEGER REFERENCES Classes(class_id),
+    roll_no INTEGER NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_roll_in_class UNIQUE (class_id, roll_no)
+);
+
+-- FaceEncodings table
+CREATE TABLE FaceEncodings (
+    encoding_id SERIAL PRIMARY KEY,
+    prn_no VARCHAR(20) REFERENCES Students(prn_no) ON DELETE CASCADE,
+    encoding_data JSONB NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- AttendanceLog table
+CREATE TABLE AttendanceLog (
+    log_id SERIAL PRIMARY KEY,
+    prn_no VARCHAR(20) REFERENCES Students(prn_no),
+    subject_id INTEGER REFERENCES Subjects(subject_id),
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'present'
+);
+
+-- Insert sample data
+INSERT INTO Classes (class_name) VALUES 
+    ('Computer Science - Year 1'),
+    ('Computer Science - Year 2');
+
+INSERT INTO Subjects (subject_name, subject_code) VALUES 
+    ('Data Structures', 'CS201'),
+    ('Database Management', 'CS202');
