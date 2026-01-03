@@ -6,7 +6,7 @@ Configuration file for the Face Recognition Attendance System
 # Database Configuration
 DB_CONFIG = {
     'host': 'localhost',
-    'database': 'attendance',
+    'database': 'attendance2',
     'user': 'postgres',
     'password': 'Pass@123'
 }
