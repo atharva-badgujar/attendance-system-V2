@@ -124,7 +124,7 @@ class RegistrationApp:
             form_container, 
             text="PRN Number (e.g., F22113001):", 
             font=("Arial", 10, "bold"), 
-            bg='white'
+            bg='grey'
         ).pack(anchor='w', pady=(15, 5))
         self.prn_entry = tk.Entry(form_container, font=("Arial", 10), relief='solid', bd=1)
         self.prn_entry.pack(fill='x', ipady=5, pady=(0, 5))
@@ -134,7 +134,7 @@ class RegistrationApp:
             form_container, 
             text="Roll Number (e.g., 101):", 
             font=("Arial", 10, "bold"), 
-            bg='white'
+            bg='grey'
         ).pack(anchor='w', pady=(15, 5))
         self.roll_entry = tk.Entry(form_container, font=("Arial", 10), relief='solid', bd=1)
         self.roll_entry.pack(fill='x', ipady=5, pady=(0, 5))
@@ -144,7 +144,7 @@ class RegistrationApp:
             form_container, 
             text="Full Name (e.g., John Doe):", 
             font=("Arial", 10, "bold"), 
-            bg='white'
+            bg='grey'
         ).pack(anchor='w', pady=(15, 5))
         self.name_entry = tk.Entry(form_container, font=("Arial", 10), relief='solid', bd=1)
         self.name_entry.pack(fill='x', ipady=5, pady=(0, 5))
@@ -164,7 +164,7 @@ class RegistrationApp:
             form_container, 
             text="Class:", 
             font=("Arial", 10, "bold"), 
-            bg='white'
+            bg='grey'
         ).pack(anchor='w', pady=(15, 5))
         self.class_dropdown = ttk.Combobox(
             form_container, 
