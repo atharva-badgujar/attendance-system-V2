@@ -115,92 +115,92 @@ class RegistrationApp:
         )
         form_header.pack()
         
-        # Form Fields
-form_container = tk.Frame(right_panel, bg='white')
-form_container.pack(fill='both', expand=True, padx=20)
+        # Form Fields Container
+        form_container = tk.Frame(right_panel, bg='white')
+        form_container.pack(fill='both', expand=True, padx=20)
 
-# PRN Number
-tk.Label(
-    form_container, 
-    text="PRN Number (e.g., F22113001):", 
-    font=("Arial", 10, "bold"), 
-    bg='white'
-).pack(anchor='w', pady=(15, 5))
-self.prn_entry = tk.Entry(form_container, font=("Arial", 10), relief='solid', bd=1)
-self.prn_entry.pack(fill='x', ipady=5, pady=(0, 5))
+        # PRN Number
+        tk.Label(
+            form_container, 
+            text="PRN Number (e.g., F22113001):", 
+            font=("Arial", 10, "bold"), 
+            bg='white'
+        ).pack(anchor='w', pady=(15, 5))
+        self.prn_entry = tk.Entry(form_container, font=("Arial", 10), relief='solid', bd=1)
+        self.prn_entry.pack(fill='x', ipady=5, pady=(0, 5))
 
-# Roll Number
-tk.Label(
-    form_container, 
-    text="Roll Number (e.g., 101):", 
-    font=("Arial", 10, "bold"), 
-    bg='white'
-).pack(anchor='w', pady=(15, 5))
-self.roll_entry = tk.Entry(form_container, font=("Arial", 10), relief='solid', bd=1)
-self.roll_entry.pack(fill='x', ipady=5, pady=(0, 5))
+        # Roll Number
+        tk.Label(
+            form_container, 
+            text="Roll Number (e.g., 101):", 
+            font=("Arial", 10, "bold"), 
+            bg='white'
+        ).pack(anchor='w', pady=(15, 5))
+        self.roll_entry = tk.Entry(form_container, font=("Arial", 10), relief='solid', bd=1)
+        self.roll_entry.pack(fill='x', ipady=5, pady=(0, 5))
 
-# Full Name
-tk.Label(
-    form_container, 
-    text="Full Name (e.g., John Doe):", 
-    font=("Arial", 10, "bold"), 
-    bg='white'
-).pack(anchor='w', pady=(15, 5))
-self.name_entry = tk.Entry(form_container, font=("Arial", 10), relief='solid', bd=1)
-self.name_entry.pack(fill='x', ipady=5, pady=(0, 5))
+        # Full Name
+        tk.Label(
+            form_container, 
+            text="Full Name (e.g., John Doe):", 
+            font=("Arial", 10, "bold"), 
+            bg='white'
+        ).pack(anchor='w', pady=(15, 5))
+        self.name_entry = tk.Entry(form_container, font=("Arial", 10), relief='solid', bd=1)
+        self.name_entry.pack(fill='x', ipady=5, pady=(0, 5))
 
-# Email (Optional)
-tk.Label(
-    form_container, 
-    text="Email (optional):", 
-    font=("Arial", 10, "bold"), 
-    bg='white'
-).pack(anchor='w', pady=(15, 5))
-self.email_entry = tk.Entry(form_container, font=("Arial", 10), relief='solid', bd=1)
-self.email_entry.pack(fill='x', ipady=5, pady=(0, 5))
+        # Email (Optional)
+        tk.Label(
+            form_container, 
+            text="Email (optional):", 
+            font=("Arial", 10, "bold"), 
+            bg='white'
+        ).pack(anchor='w', pady=(15, 5))
+        self.email_entry = tk.Entry(form_container, font=("Arial", 10), relief='solid', bd=1)
+        self.email_entry.pack(fill='x', ipady=5, pady=(0, 5))
 
-# Class Dropdown
-tk.Label(
-    form_container, 
-    text="Class:", 
-    font=("Arial", 10, "bold"), 
-    bg='white'
-).pack(anchor='w', pady=(15, 5))
-self.class_dropdown = ttk.Combobox(
-    form_container, 
-    textvariable=self.selected_class, 
-    state='readonly', 
-    font=("Arial", 10)
-)
-self.class_dropdown.pack(fill='x', pady=(0, 15))
+        # Class Dropdown
+        tk.Label(
+            form_container, 
+            text="Class:", 
+            font=("Arial", 10, "bold"), 
+            bg='white'
+        ).pack(anchor='w', pady=(15, 5))
+        self.class_dropdown = ttk.Combobox(
+            form_container, 
+            textvariable=self.selected_class, 
+            state='readonly', 
+            font=("Arial", 10)
+        )
+        self.class_dropdown.pack(fill='x', pady=(0, 15))
 
-# Register Button
-self.register_btn = tk.Button(
-    form_container,
-    text="📷 Capture & Register Student",
-    command=self.register_student,
-    bg='#2196F3',
-    fg='white',
-    font=("Arial", 12, "bold"),
-    relief='flat',
-    pady=15,
-    cursor='hand2',
-    state='disabled'
-)
-self.register_btn.pack(fill='x', pady=(20, 10))
+        # Register Button
+        self.register_btn = tk.Button(
+            form_container,
+            text="📷 Capture & Register Student",
+            command=self.register_student,
+            bg='#2196F3',
+            fg='white',
+            font=("Arial", 12, "bold"),
+            relief='flat',
+            pady=15,
+            cursor='hand2',
+            state='disabled'
+        )
+        self.register_btn.pack(fill='x', pady=(20, 10))
 
-# Clear Button
-clear_btn = tk.Button(
-    form_container,
-    text="🗑️ Clear Form",
-    command=self.clear_form,
-    bg='#f0f0f0',
-    font=("Arial", 10),
-    relief='flat',
-    pady=10,
-    cursor='hand2'
-)
-clear_btn.pack(fill='x')
+        # Clear Button
+        clear_btn = tk.Button(
+            form_container,
+            text="🗑️ Clear Form",
+            command=self.clear_form,
+            bg='#f0f0f0',
+            font=("Arial", 10),
+            relief='flat',
+            pady=10,
+            cursor='hand2'
+        )
+        clear_btn.pack(fill='x')
         
     def load_data(self):
         """Load classes and cameras"""
