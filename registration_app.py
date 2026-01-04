@@ -154,7 +154,7 @@ class RegistrationApp:
             form_container, 
             text="Email (optional):", 
             font=("Arial", 10, "bold"), 
-            bg='white'
+            bg='grey'
         ).pack(anchor='w', pady=(15, 5))
         self.email_entry = tk.Entry(form_container, font=("Arial", 10), relief='solid', bd=1)
         self.email_entry.pack(fill='x', ipady=5, pady=(0, 5))
