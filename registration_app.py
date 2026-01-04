@@ -1,11 +1,7 @@
-# Main Application File (registration_app.py)
-"""
-Professional Registration Application with Enhanced UI
-"""
-
 import tkinter as tk
 from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
+import cv2
 import threading
 import time
 
@@ -124,31 +120,28 @@ class RegistrationApp:
         form_container.pack(fill='both', expand=True, padx=20)
         
         # PRN Number
-        self.create_form_field(form_container, "PRN Number:", "prn_entry", "e.g., F22113001")
+        tk.Label(form_container, text="PRN Number:", font=("Arial", 10, "bold"), bg='white').pack(anchor='w', pady=(15, 5))
+        self.prn_entry = tk.Entry(form_container, font=("Arial", 10), relief='solid', bd=1)
+        self.prn_entry.pack(fill='x', ipady=5, pady=(0, 5))
         
         # Roll Number
-        self.create_form_field(form_container, "Roll Number:", "roll_entry", "e.g., 101")
+        tk.Label(form_container, text="Roll Number:", font=("Arial", 10, "bold"), bg='white').pack(anchor='w', pady=(15, 5))
+        self.roll_entry = tk.Entry(form_container, font=("Arial", 10), relief='solid', bd=1)
+        self.roll_entry.pack(fill='x', ipady=5, pady=(0, 5))
         
         # Full Name
-        self.create_form_field(form_container, "Full Name:", "name_entry", "e.g., John Doe")
+        tk.Label(form_container, text="Full Name:", font=("Arial", 10, "bold"), bg='white').pack(anchor='w', pady=(15, 5))
+        self.name_entry = tk.Entry(form_container, font=("Arial", 10), relief='solid', bd=1)
+        self.name_entry.pack(fill='x', ipady=5, pady=(0, 5))
         
         # Email
-        self.create_form_field(form_container, "Email:", "email_entry", "e.g., john@example.com")
+        tk.Label(form_container, text="Email:", font=("Arial", 10, "bold"), bg='white').pack(anchor='w', pady=(15, 5))
+        self.email_entry = tk.Entry(form_container, font=("Arial", 10), relief='solid', bd=1)
+        self.email_entry.pack(fill='x', ipady=5, pady=(0, 5))
         
         # Class Dropdown
-        tk.Label(
-            form_container, 
-            text="Class:", 
-            font=("Arial", 10, "bold"),
-            bg='white'
-        ).pack(anchor='w', pady=(15, 5))
-        
-        self.class_dropdown = ttk.Combobox(
-            form_container,
-            textvariable=self.selected_class,
-            state='readonly',
-            font=("Arial", 10)
-        )
+        tk.Label(form_container, text="Class:", font=("Arial", 10, "bold"), bg='white').pack(anchor='w', pady=(15, 5))
+        self.class_dropdown = ttk.Combobox(form_container, textvariable=self.selected_class, state='readonly', font=("Arial", 10))
         self.class_dropdown.pack(fill='x', pady=(0, 15))
         
         # Register Button
@@ -179,36 +172,6 @@ class RegistrationApp:
         )
         clear_btn.pack(fill='x')
         
-    def create_form_field(self, parent, label_text, entry_name, placeholder):
-        """Create a form field with label and entry"""
-        tk.Label(
-            parent, 
-            text=label_text, 
-            font=("Arial", 10, "bold"),
-            bg='white'
-        ).pack(anchor='w', pady=(15, 5))
-        
-        entry = tk.Entry(parent, font=("Arial", 10), relief='solid', bd=1)
-        entry.pack(fill='x', ipady=5, pady=(0, 5))
-        entry.insert(0, placeholder)
-        entry.config(fg='grey')
-        
-        # Placeholder behavior
-        entry.bind('<FocusIn>', lambda e: self.on_entry_focus_in(e, placeholder))
-        entry.bind('<FocusOut>', lambda e: self.on_entry_focus_out(e, placeholder))
-        
-        setattr(self, entry_name, entry)
-        
-    def on_entry_focus_in(self, event, placeholder):
-        if event.widget.get() == placeholder:
-            event.widget.delete(0, 'end')
-            event.widget.config(fg='black')
-            
-    def on_entry_focus_out(self, event, placeholder):
-        if event.widget.get() == '':
-            event.widget.insert(0, placeholder)
-            event.widget.config(fg='grey')
-    
     def load_data(self):
         """Load classes and cameras"""
         try:
@@ -291,18 +254,13 @@ class RegistrationApp:
         self.video_label.imgtk = imgtk
         self.video_label.configure(image=imgtk)
     
-    def get_entry_value(self, entry, placeholder):
-        """Get entry value, ignoring placeholder"""
-        value = entry.get().strip()
-        return '' if value == placeholder else value
-    
     def register_student(self):
         """Register a new student"""
         # Get form values
-        prn = self.get_entry_value(self.prn_entry, "e.g., F22113001")
-        roll_no = self.get_entry_value(self.roll_entry, "e.g., 101")
-        name = self.get_entry_value(self.name_entry, "e.g., John Doe")
-        email = self.get_entry_value(self.email_entry, "e.g., john@example.com")
+        prn = self.prn_entry.get().strip()
+        roll_no = self.roll_entry.get().strip()
+        name = self.name_entry.get().strip()
+        email = self.email_entry.get().strip()
         class_name = self.selected_class.get()
         
         # Validate
@@ -310,7 +268,7 @@ class RegistrationApp:
             messagebox.showerror("Error", "Please fill all required fields (PRN, Roll No, Name, Class)")
             return
         
-        if not self.current_frame is not None:
+        if self.current_frame is None:
             messagebox.showerror("Error", "No camera frame available")
             return
         
@@ -347,20 +305,9 @@ class RegistrationApp:
     def clear_form(self):
         """Clear all form fields"""
         self.prn_entry.delete(0, 'end')
-        self.prn_entry.insert(0, "e.g., F22113001")
-        self.prn_entry.config(fg='grey')
-        
         self.roll_entry.delete(0, 'end')
-        self.roll_entry.insert(0, "e.g., 101")
-        self.roll_entry.config(fg='grey')
-        
         self.name_entry.delete(0, 'end')
-        self.name_entry.insert(0, "e.g., John Doe")
-        self.name_entry.config(fg='grey')
-        
         self.email_entry.delete(0, 'end')
-        self.email_entry.insert(0, "e.g., john@example.com")
-        self.email_entry.config(fg='grey')
     
     def on_close(self):
         """Handle window close"""
@@ -368,23 +315,3 @@ class RegistrationApp:
         if self.video_thread:
             self.video_thread.join(timeout=1)
         self.root.destroy()
-
-
-# ===================================================================
-# Run Registration Application
-if __name__ == "__main__":
-    from attendance_config import DB_CONFIG, FACE_RECOGNITION_CONFIG, CAMERA_CONFIG
-    
-    # Initialize managers
-    db = DatabaseManager(DB_CONFIG)
-    face_engine = FaceRecognitionEngine(FACE_RECOGNITION_CONFIG)
-    camera_mgr = CameraManager(CAMERA_CONFIG)
-    
-    # Create and run application
-    root = tk.Tk()
-    app = RegistrationApp(root, db, face_engine, camera_mgr)
-    root.protocol("WM_DELETE_WINDOW", app.on_close)
-    root.mainloop()
-    
-    # Cleanup
-    db.close()
