@@ -12,11 +12,14 @@ DB_CONFIG = {
 }
 
 FACE_RECOGNITION_CONFIG = {
-    'tolerance': 6000,
-    'model': 'opencv',
-    'num_jitters': 1,
-    'detection_scale': 0.5,
-    'encoding_scale': 1.0,
+    'use_yolo': True,
+    'yolo_model': 'yolov8n.pt',
+    'yolo_confidence': 0.3,
+    'insightface_model': 'buffalo_l',
+    'det_thresh': 0.5,
+    'det_size': (640, 640),
+    'recognition_tolerance': 0.8,
+    'detection_scale': 1.0,
 }
 
 ATTENDANCE_COOLDOWN = 300

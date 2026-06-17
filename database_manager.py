@@ -102,16 +102,17 @@ class DatabaseManager:
                         return False, str(e)
 
     def get_all_face_encodings(self):
-        """Fetch all face encodings from database"""
+        """Fetch all face encodings from database (JSONB format for compatibility)"""
         with self.get_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT prn_no, encoding_data FROM FaceEncodings")
+                cur.execute("SELECT prn_no, encoding_data FROM FaceEncodings ORDER BY prn_no")
                 results = cur.fetchall()
                 encodings = []
                 prns = []
                 for prn_no, encoding_data in results:
-                    encodings.append(np.array(encoding_data))
-                    prns.append(prn_no)
+                    if encoding_data:
+                        encodings.append(np.array(encoding_data, dtype=np.float32))
+                        prns.append(prn_no)
                 return encodings, prns
 
     def log_attendance(self, prn_no, subject_id):

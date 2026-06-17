@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS Students (
     CONSTRAINT unique_roll_in_class UNIQUE (class_id, roll_no)
 );
 
--- FaceEncodings table
+-- FaceEncodings table with optional pgvector support
+-- Note: pgvector extension is optional; embedding_vector column may be empty if pgvector is not installed
 CREATE TABLE IF NOT EXISTS FaceEncodings (
     encoding_id SERIAL PRIMARY KEY,
     prn_no VARCHAR(20) REFERENCES Students(prn_no) ON DELETE CASCADE,
