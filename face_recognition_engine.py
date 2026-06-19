@@ -4,6 +4,8 @@ import numpy as np
 from threading import Lock
 from ultralytics import YOLO
 from insightface import app
+import time
+from collections import defaultdict
 
 class FaceRecognitionEngine:
     def __init__(self, config):
@@ -13,6 +15,8 @@ class FaceRecognitionEngine:
         self.lock = Lock()
         self.face_analyzer = None
         self.yolo_detector = None
+        self.last_detection = defaultdict(float)  # prn -> timestamp for deduplication
+        self.camera_directions = {}  # camera_id -> direction (IN/OUT/BOTH)
 
         self._initialize_face_analyzer()
         self._initialize_yolo_detector()
@@ -181,3 +185,67 @@ class FaceRecognitionEngine:
         l = clahe.apply(l)
         enhanced = cv2.merge([l, a, b])
         return cv2.cvtColor(enhanced, cv2.COLOR_LAB2BGR)
+
+    def check_face_quality(self, frame, face_location):
+        """Check if a face meets quality thresholds for recognition.
+        
+        Returns: (is_quality_ok, quality_score_dict)
+        """
+        top, right, bottom, left = face_location
+        face_crop = frame[top:bottom, left:right]
+        
+        if face_crop.size == 0:
+            return False, {"error": "empty_crop"}
+
+        # 1. Size check: minimum 80x80 pixels
+        height, width = face_crop.shape[:2]
+        min_size = int(self.config.get('min_face_size', 80))
+        if width < min_size or height < min_size:
+            return False, {"size": (width, height), "min_required": min_size}
+
+        # 2. Blur check: Laplacian variance
+        gray = cv2.cvtColor(face_crop, cv2.COLOR_BGR2GRAY)
+        laplacian_var = cv2.Laplacian(gray, cv2.CV_64F).var()
+        blur_threshold = float(self.config.get('blur_threshold', 100))
+        if laplacian_var < blur_threshold:
+            return False, {"blur_score": laplacian_var, "threshold": blur_threshold}
+
+        # 3. Brightness check: mean pixel value
+        brightness = cv2.cvtColor(face_crop, cv2.COLOR_BGR2LAB)[:, :, 0].mean()
+        if brightness < 30 or brightness > 220:
+            return False, {"brightness": brightness}
+
+        return True, {
+            "size": (width, height),
+            "blur_score": laplacian_var,
+            "brightness": brightness
+        }
+
+    def should_deduplicate(self, prn, camera_id=None):
+        """Check if this face was detected too recently (deduplication).
+        
+        Returns: True if should skip (deduplicate), False if should process.
+        """
+        cooldown_seconds = int(self.config.get('detection_cooldown', 300))
+        key = f"{prn}_{camera_id}" if camera_id else prn
+        now = time.time()
+        
+        last_time = self.last_detection.get(key, 0.0)
+        if now - last_time < cooldown_seconds:
+            return True
+        
+        self.last_detection[key] = now
+        return False
+
+    def set_camera_direction(self, camera_id, direction):
+        """Set or update camera direction (IN/OUT/BOTH).
+        
+        This allows distinguishing entry vs exit for attendance logic.
+        """
+        if direction not in ('IN', 'OUT', 'BOTH'):
+            raise ValueError(f"Invalid direction: {direction}")
+        self.camera_directions[camera_id] = direction
+
+    def get_camera_direction(self, camera_id):
+        """Get camera direction (IN/OUT/BOTH)."""
+        return self.camera_directions.get(camera_id, 'BOTH')

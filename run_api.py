@@ -1,11 +1,13 @@
-from typing import List
+from typing import List, Optional
 import numpy as np
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import uvicorn
+from datetime import datetime
 
-from attendance_config import DB_CONFIG
+from attendance_config import DB_CONFIG, FACE_RECOGNITION_CONFIG
 from database_manager import DatabaseManager
+from face_recognition_engine import FaceRecognitionEngine
 
 app = FastAPI(
     title="Attendance System API",
@@ -14,6 +16,7 @@ app = FastAPI(
 )
 
 db = DatabaseManager(DB_CONFIG)
+face_engine = FaceRecognitionEngine(FACE_RECOGNITION_CONFIG)
 
 
 class StudentRegistrationPayload(BaseModel):
@@ -23,6 +26,31 @@ class StudentRegistrationPayload(BaseModel):
     name: str
     email: str
     face_encoding: List[float]
+
+
+class MultiPhotoEnrollmentPayload(BaseModel):
+    """Multi-photo enrollment for improved recognition accuracy."""
+    prn: str
+    class_id: int
+    roll_no: int
+    name: str
+    email: str
+    face_encodings: List[List[float]]  # Multiple photos
+
+
+class AttendanceLogPayload(BaseModel):
+    """Log attendance with optional direction (IN/OUT)."""
+    prn: str
+    subject_id: int
+    camera_id: Optional[str] = None
+    direction: Optional[str] = None  # 'IN', 'OUT', or None
+    confidence: Optional[float] = None
+
+
+class CameraConfigPayload(BaseModel):
+    """Configure camera direction for IN/OUT tracking."""
+    camera_id: str
+    direction: str  # 'IN', 'OUT', or 'BOTH'
 
 
 @app.get("/")
@@ -73,7 +101,43 @@ async def register_student(payload: StudentRegistrationPayload):
         if not success:
             raise HTTPException(status_code=400, detail=message)
 
-        return {"detail": message}
+        return {"detail": message, "enrolled_at": datetime.now().isoformat()}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/enroll-multi-photo")
+async def enroll_with_multiple_photos(payload: MultiPhotoEnrollmentPayload):
+    """Enroll a student with multiple face photos for improved accuracy."""
+    try:
+        if not payload.face_encodings:
+            raise HTTPException(status_code=400, detail="At least one face encoding required")
+
+        if len(payload.face_encodings) > 5:
+            raise HTTPException(status_code=400, detail="Maximum 5 photos per enrollment")
+
+        # Average multiple encodings for a more robust embedding
+        encodings = [np.array(enc, dtype=np.float32) for enc in payload.face_encodings]
+        averaged_encoding = np.mean(encodings, axis=0)
+
+        success, message = db.register_student(
+            payload.prn,
+            payload.class_id,
+            payload.roll_no,
+            payload.name,
+            payload.email,
+            averaged_encoding,
+        )
+
+        if not success:
+            raise HTTPException(status_code=400, detail=message)
+
+        return {
+            "detail": message,
+            "photos_enrolled": len(payload.face_encodings),
+            "enrolled_at": datetime.now().isoformat()
+        }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -91,6 +155,54 @@ async def get_attendance():
     if not hasattr(db, "get_attendance_logs"):
         return {"message": "Attendance logs not implemented yet"}
     return db.get_attendance_logs()
+
+
+@app.post("/attendance/log")
+async def log_attendance(payload: AttendanceLogPayload):
+    """Log attendance for a recognized person."""
+    try:
+        success = db.log_attendance(payload.prn, payload.subject_id)
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to log attendance")
+
+        direction = payload.direction or "UNKNOWN"
+        return {
+            "detail": "Attendance logged successfully",
+            "prn": payload.prn,
+            "direction": direction,
+            "confidence": payload.confidence,
+            "timestamp": datetime.now().isoformat()
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/cameras/config")
+async def configure_camera(payload: CameraConfigPayload):
+    """Set camera direction (IN/OUT/BOTH) for IN-OUT tracking."""
+    try:
+        if payload.direction not in ('IN', 'OUT', 'BOTH'):
+            raise HTTPException(status_code=400, detail="Invalid direction. Must be IN, OUT, or BOTH")
+
+        face_engine.set_camera_direction(payload.camera_id, payload.direction)
+        return {
+            "detail": "Camera configured successfully",
+            "camera_id": payload.camera_id,
+            "direction": payload.direction
+        }
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/cameras/{camera_id}/direction")
+async def get_camera_direction(camera_id: str):
+    """Get the configured direction for a camera."""
+    direction = face_engine.get_camera_direction(camera_id)
+    return {"camera_id": camera_id, "direction": direction}
 
 
 if __name__ == "__main__":
