@@ -94,6 +94,30 @@ python run_registration.py
 python run_attendance.py
 ```
 
+### 5. Start the API and Dashboard (recommended)
+
+Prefer running the UI and API from the project's virtual environment so dependencies (uvicorn, psycopg2, etc.) are available.
+
+Activate the venv and start the dashboard (the dashboard's "Start API Server" button will prefer the venv python):
+
+```bash
+source venv/bin/activate
+python run_dashboard.py
+```
+
+Or, without activating the venv, start the API manually and then the dashboard:
+
+```bash
+./venv/bin/python -m uvicorn run_api:app --host 127.0.0.1 --port 8000 --reload
+python run_dashboard.py
+```
+
+Quick health-check script:
+
+```bash
+python scripts/check_health.py
+```
+
 ## What the Prototype Does
 
 - Loads the bundled SQL schema automatically on startup

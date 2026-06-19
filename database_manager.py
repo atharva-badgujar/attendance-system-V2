@@ -102,16 +102,17 @@ class DatabaseManager:
                         return False, str(e)
 
     def get_all_face_encodings(self):
-        """Fetch all face encodings from database"""
+        """Fetch all face encodings from database (JSONB format for compatibility)"""
         with self.get_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT prn_no, encoding_data FROM FaceEncodings")
+                cur.execute("SELECT prn_no, encoding_data FROM FaceEncodings ORDER BY prn_no")
                 results = cur.fetchall()
                 encodings = []
                 prns = []
                 for prn_no, encoding_data in results:
-                    encodings.append(np.array(encoding_data))
-                    prns.append(prn_no)
+                    if encoding_data:
+                        encodings.append(np.array(encoding_data, dtype=np.float32))
+                        prns.append(prn_no)
                 return encodings, prns
 
     def log_attendance(self, prn_no, subject_id):
@@ -137,7 +138,75 @@ class DatabaseManager:
                 cur.execute("SELECT name FROM Students WHERE prn_no = %s", (prn_no,))
                 result = cur.fetchone()
                 return result[0] if result else None
+    def get_all_students(self):
+        """Fetch all students"""
+        with self.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT prn_no, class_id, roll_no, name, email
+                    FROM Students
+                    ORDER BY roll_no
+                """)
+                rows = cur.fetchall()
 
+                students = []
+                for row in rows:
+                    students.append({
+                        "prn": row[0],
+                        "class_id": row[1],
+                        "roll_no": row[2],
+                        "name": row[3],
+                        "email": row[4]
+                    })
+
+                return students
+
+    def get_attendance_logs(self):
+        """Fetch attendance logs"""
+        with self.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT log_id, prn_no, subject_id, timestamp, status
+                    FROM AttendanceLog
+                    ORDER BY timestamp DESC
+                """)
+
+                rows = cur.fetchall()
+
+                logs = []
+                for row in rows:
+                    logs.append({
+                        "log_id": row[0],
+                        "prn": row[1],
+                        "subject_id": row[2],
+                        "timestamp": str(row[3]),
+                        "status": row[4]
+                    })
+
+                return logs
+
+    def get_dashboard_stats(self):
+        """Get simple dashboard stats"""
+        with self.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT COUNT(*) FROM Students")
+                total_students = cur.fetchone()[0]
+
+                cur.execute("""
+                    SELECT COUNT(DISTINCT prn_no)
+                    FROM AttendanceLog
+                    WHERE DATE(timestamp) = CURRENT_DATE
+                """)
+                present_today = cur.fetchone()[0]
+
+            absent_today = total_students - present_today
+
+            return {
+                "total_students": total_students,
+                "present_today": present_today,
+                "absent_today": absent_today
+            }
+    
     def close(self):
         """Close all connections in the pool"""
         self.connection_pool.closeall()
